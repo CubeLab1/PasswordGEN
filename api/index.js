@@ -1,18 +1,10 @@
 const express = require('express');
-const path = require('path');
-const cors = require('cors');  // Import the cors module
+const serverless = require('serverless-http');
 const app = express();
-const PORT = 3000;
-
-// Use CORS to allow requests from different origins
-app.use(cors());
 
 app.use(express.json());
-app.use(express.static(__dirname));
 
-// Helper functions and endpoints as before...
-
-// Helper function to generate a random password
+// Password generation logic
 function generatePassword(length, useUppercase, useLowercase, useNumbers, useSymbols) {
     const upperCaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const lowerCaseChars = 'abcdefghijklmnopqrstuvwxyz';
@@ -38,7 +30,6 @@ function generatePassword(length, useUppercase, useLowercase, useNumbers, useSym
     return password;
 }
 
-// Endpoint to generate a password
 app.post('/generate-password', (req, res) => {
     const { length, useUppercase, useLowercase, useNumbers, useSymbols } = req.body;
 
@@ -50,38 +41,17 @@ app.post('/generate-password', (req, res) => {
     }
 });
 
-// Helper function to validate password strength
-function validatePasswordStrength(password) {
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    const hasNumbers = /[0-9]/.test(password);
-    const hasSymbols = /[!@#$%^&*()_+\-=\[\]{}|;:',.<>?]/.test(password);
-    
-    const lengthScore = password.length >= 12 ? 2 : (password.length >= 8 ? 1 : 0);
-    const varietyScore = [hasUppercase, hasLowercase, hasNumbers, hasSymbols].filter(Boolean).length;
-
-    if (lengthScore >= 1 && varietyScore >= 3) {
-        return "Strong";
-    } else if (lengthScore >= 1 && varietyScore >= 2) {
-        return "Medium";
-    } else {
-        return "Weak";
-    }
-}
-
-// Endpoint to validate password strength
 app.post('/validate-password', (req, res) => {
-    const { password } = req.body;
+    const password = req.body.password;
 
     if (!password || typeof password !== 'string') {
-        return res.status(400).json({ error: "A valid password must be provided" });
+        return res.status(400).json({ error: 'A valid password must be provided' });
     }
 
-    const strength = validatePasswordStrength(password);
+    const strength = password.length >= 12 ? 'Strong' : password.length >= 8 ? 'Medium' : 'Weak';
     res.json({ strength });
 });
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Password generation and validation microservice is running on http://localhost:${PORT}`);
-});
+// Export the app for serverless deployment
+module.exports = app;
+module.exports.handler = serverless(app);
