@@ -4,7 +4,7 @@ const app = express();
 
 app.use(express.json());
 
-// Password generation logic
+// Password generation logic so far 
 function generatePassword(length, useUppercase, useLowercase, useNumbers, useSymbols) {
     const upperCaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const lowerCaseChars = 'abcdefghijklmnopqrstuvwxyz';
