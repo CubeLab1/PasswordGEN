@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Generator and Validator</title>
+</head>
+<body>
+    <h1>Password Generator and Validator</h1>
+
+    <!-- Password Generation Form -->
+    <h2>Generate Password</h2>
+    <form id="generate-form">
+        <label for="length">Length:</label>
+        <input type="number" id="length" name="length" min="1" required>
+
+        <label><input type="checkbox" id="useUppercase" name="useUppercase"> Uppercase</label>
+        <label><input type="checkbox" id="useLowercase" name="useLowercase"> Lowercase</label>
+        <label><input type="checkbox" id="useNumbers" name="useNumbers"> Numbers</label>
+        <label><input type="checkbox" id="useSymbols" name="useSymbols"> Symbols</label>
+
+        <button type="button" onclick="generatePassword()">Generate Password</button>
+        <button type="button" onclick="redoPassword()" id="redo-button" style="display:none;">Redo Password</button>
+        <button type="button" onclick="resetForm()">Reset</button>
+    </form>
+
+    <!-- Description for Password Length -->
+    <p style="color: gray; font-size: 0.9em;">
+        <strong>Why choose a password with more than 12 characters?</strong><br>
+        Passwords with 12 or more characters are generally harder to crack because they increase the number of possible combinations, making it more difficult for attackers to guess or brute-force. Adding uppercase letters, numbers, and symbols further strengthens your password.
+    </p>
+
+    <!-- Explanation of Costs -->
+    <p style="color: gray; font-size: 0.9em;">
+        <strong>Consider the trade-offs:</strong><br>
+        Choosing a longer password with more character types increases security but can also make it harder to remember. Highly complex passwords might also be challenging to enter on mobile devices or may require more frequent resets if forgotten.
+    </p>
+
+    <p><strong>Generated Password:</strong> <span id="generated-password"></span></p>
+    <button type="button" onclick="copyPassword()" id="copy-button" style="display:none;">Copy</button>
+
+    <!-- Password Validation Form -->
+    <h2>Validate Password Strength</h2>
+    <form id="validate-form">
+        <label for="password">Password:</label>
+        <input type="text" id="password" name="password" required>
+
+        <button type="button" onclick="validatePassword()">Validate Strength</button>
+    </form>
+
+    <p><strong>Password Strength:</strong> <span id="password-strength"></span></p>
+
+    <script>
+        // Store previous criteria for "Redo" functionality
+        let lastCriteria = {};
+
+        // Function to generate password
+        async function generatePassword() {
+            const length = document.getElementById('length').value;
+            const useUppercase = document.getElementById('useUppercase').checked;
+            const useLowercase = document.getElementById('useLowercase').checked;
+            const useNumbers = document.getElementById('useNumbers').checked;
+            const useSymbols = document.getElementById('useSymbols').checked;
+
+            // Save criteria for redo
+            lastCriteria = { length, useUppercase, useLowercase, useNumbers, useSymbols };
+
+            const response = await fetch('http://localhost:3000/generate-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(lastCriteria)
+            });
+
+            const data = await response.json();
+            const generatedPassword = data.password || data.error;
+            document.getElementById('generated-password').textContent = generatedPassword;
+
+            // Show the copy and redo buttons if a password was generated
+            const copyButton = document.getElementById('copy-button');
+            const redoButton = document.getElementById('redo-button');
+            if (data.password) {
+                copyButton.style.display = 'inline-block';
+                redoButton.style.display = 'inline-block';
+            } else {
+                copyButton.style.display = 'none';
+                redoButton.style.display = 'none';
+            }
+        }
+
+        // Function to redo password generation with previous criteria
+        async function redoPassword() {
+            if (!lastCriteria.length) return; // No previous criteria to use
+
+            const response = await fetch('http://localhost:3000/generate-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(lastCriteria)
+            });
+
+            const data = await response.json();
+            document.getElementById('generated-password').textContent = data.password || data.error;
+        }
+
+        // Function to copy generated password to clipboard
+        function copyPassword() {
+            const password = document.getElementById('generated-password').textContent;
+            navigator.clipboard.writeText(password)
+                .then(() => {
+                    alert('Password copied to clipboard!');
+                    // Automatically paste copied password into the validator input
+                    document.getElementById('password').value = password;
+                })
+                .catch(err => {
+                    console.error('Failed to copy password:', err);
+                });
+        }
+
+        // Function to reset form inputs and hide results
+        function resetForm() {
+            document.getElementById('generate-form').reset();
+            document.getElementById('generated-password').textContent = '';
+            document.getElementById('password-strength').textContent = '';
+            document.getElementById('copy-button').style.display = 'none';
+            document.getElementById('redo-button').style.display = 'none';
+            lastCriteria = {};  // Clear the last criteria
+        }
+
+        // Function to validate password strength
+        async function validatePassword() {
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('http://localhost:3000/validate-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password })
+            });
+
+            const data = await response.json();
+            document.getElementById('password-strength').textContent = data.strength || data.error;
+        }
+    </script>
+</body>
+</html>
