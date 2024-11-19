@@ -6,7 +6,12 @@
   "scripts": {
     "start": "node api/index.js"
   },
-  "keywords": ["password", "generation", "validation", "microservice"],
+  "keywords": [
+    "password",
+    "generation",
+    "validation",
+    "microservice"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
