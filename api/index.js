@@ -1,10 +1,17 @@
 const express = require('express');
 const serverless = require('serverless-http');
+const cors = require('cors');
+
 const app = express();
-
 app.use(express.json());
+app.use(cors());
 
-// Password generation logic so far 
+// Root route
+app.get('/', (req, res) => {
+    res.send('Password Generation Microservice is running!');
+});
+
+// Password generation logic
 function generatePassword(length, useUppercase, useLowercase, useNumbers, useSymbols) {
     const upperCaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const lowerCaseChars = 'abcdefghijklmnopqrstuvwxyz';
@@ -30,6 +37,7 @@ function generatePassword(length, useUppercase, useLowercase, useNumbers, useSym
     return password;
 }
 
+// Endpoint: Generate Password
 app.post('/generate-password', (req, res) => {
     const { length, useUppercase, useLowercase, useNumbers, useSymbols } = req.body;
 
@@ -41,6 +49,7 @@ app.post('/generate-password', (req, res) => {
     }
 });
 
+// Endpoint: Validate Password
 app.post('/validate-password', (req, res) => {
     const password = req.body.password;
 
@@ -52,6 +61,6 @@ app.post('/validate-password', (req, res) => {
     res.json({ strength });
 });
 
-// Export the app for serverless deployment
+// Export for serverless
 module.exports = app;
 module.exports.handler = serverless(app);
