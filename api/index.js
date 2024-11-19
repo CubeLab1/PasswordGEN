@@ -11,7 +11,7 @@ app.get('/', (req, res) => {
     res.send('Password Generation Microservice is running!');
 });
 
-// Password generation logic
+// Password generation logic sofar 
 function generatePassword(length, useUppercase, useLowercase, useNumbers, useSymbols) {
     const upperCaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const lowerCaseChars = 'abcdefghijklmnopqrstuvwxyz';
